@@ -2,6 +2,11 @@ package com.company;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -11,114 +16,115 @@ public class Main {
          * Filter
          * Female Only
          * */
-        femaleOnly();
+        femaleOnly.apply(persons.get())
+                .forEach(System.out::println);
 
         /**
          * Sort
          * By age smaller to greater
          * */
-//        sortAgeAscending();
+        everyoneGreaterThan20.apply(persons.get());
 
         /**
          * All matches
          * everyone above 20
          * */
-//        areAllGreaterThan20();
+        System.out.println("is everybody greater than 20 -> "
+                + everyoneGreaterThan20.apply(persons.get()));
 
         /**
          * Any Match
          * someone greater than 20
          * */
-//        isAnyoneAbove20();
+        System.out.println("Someone greater than 20 -> "
+                + isAnyoneAbove20.apply(persons.get()));
 
         /**
          * None Match
          * */
-//        isAbove20NoneMatch();
+        System.out.println("is no one greater than 20 -> "
+                + isAbove20NoneMatch.apply(persons.get()));
 
         /**
          * MAX
          * Person with the highest age
          * */
-//        personWithMaxAge();
-
+        oldestPerson.accept(persons.get());
 
         /**
          * MIN
          * Person with min age
          * */
-//        personWithMinAge();
+        youngestPerson.accept(persons.get());
 
         /**
          * GROUP
          * First group with male & then female
          * */
-//        groupByGender();
-
-    }
-
-    private static void groupByGender() {
-        getPeople().stream()
-                .collect(Collectors.groupingBy(Person::getGender))
-                .forEach(((gender, peoples) -> {
+        groupByGender.apply(persons.get())
+                .forEach((gender, peoples) -> {
                     System.out.println(gender);
                     peoples.forEach(System.out::println);
                     System.out.println();
-                }));
+                });
+
     }
 
-    private static void personWithMinAge() {
-        getPeople().stream()
-                .min(Comparator.comparing(Person::getAge))
-                .ifPresentOrElse(System.out::println, () -> System.out.println("No one with min age"));
-    }
+    private static Function<List<Person>, Map<Gender, List<Person>>> groupByGender =
+            people -> people
+                    .stream()
+                    .collect(Collectors.groupingBy(Person::getGender));
 
-    private static void personWithMaxAge() {
-        getPeople().stream()
-                .max(Comparator.comparing(Person::getAge))
-                .ifPresentOrElse(System.out::println, () -> System.out.println("Not fount."));
-    }
+    private static Consumer<List<Person>> youngestPerson =
+            people -> people
+                    .stream()
+                    .min(Comparator.comparing(Person::getAge))
+                    .ifPresent(System.out::println);
 
-    private static void isAbove20NoneMatch() {
-        boolean noneMatchAbove20 = getPeople().stream()
-                .noneMatch(person -> person.getAge() > 20);
-        System.out.println(noneMatchAbove20);
-    }
+    private static Consumer<List<Person>> oldestPerson =
+            people -> people
+                    .stream()
+                    .max(Comparator.comparing(Person::getAge))
+                    .ifPresent(System.out::println);
 
-    private static void isAnyoneAbove20() {
-        boolean anyoneGreaterThan20 = getPeople().stream()
-                .anyMatch(person -> person.getAge() > 20);
-        System.out.println(anyoneGreaterThan20);
-    }
+    private static Function<List<Person>, Boolean> isAbove20NoneMatch =
+            people -> people
+                    .stream()
+                    .noneMatch(person -> person.getAge() > 20);
 
-    private static void areAllGreaterThan20() {
-        boolean greaterThan20 = getPeople().stream()
-                .allMatch(person -> person.getAge() > 20);
-        System.out.println(greaterThan20);
-    }
+    private static Function<List<Person>, Boolean> isAnyoneAbove20 =
+            people -> people
+                    .stream()
+                    .anyMatch(person -> person.getAge() > 20);
 
-    private static void sortAgeAscending() {
-        getPeople().stream()
-                .sorted(Comparator.comparing(Person::getAge))
-                .collect(Collectors.toList())
-                .forEach(System.out::println);
-    }
+    private static Predicate<Person> greaterThan20 =
+            person -> person.getAge() > 20;
 
-    private static void femaleOnly() {
-        getPeople().stream().filter(person -> person.getGender().equals(Gender.FEMALE))
-                .collect(Collectors.toList())
-                .forEach(System.out::println);
-    }
+    private static Function<List<Person>, Boolean> everyoneGreaterThan20 =
+            people -> people
+                    .stream()
+                    .allMatch(greaterThan20);
 
-    private static List<Person> getPeople() {
-        return List.of(
-                new Person("Antonio", 20, Gender.MALE),
-                new Person("Alina Smith", 33, Gender.FEMALE),
-                new Person("Helen White", 57, Gender.FEMALE),
-                new Person("Alex Boz", 14, Gender.MALE),
-                new Person("Jamie Goa", 99, Gender.MALE),
-                new Person("Anna Cook", 7, Gender.FEMALE),
-                new Person("Zelda Brown", 120, Gender.FEMALE)
-        );
-    }
+    private static Function<List<Person>, List<Person>> ageSorted =
+            people -> people
+                    .stream()
+                    .sorted(Comparator.comparing(Person::getAge))
+                    .collect(Collectors.toList());
+
+    private static Function<List<Person>, List<Person>> femaleOnly =
+            people -> people
+                    .stream()
+                    .sorted(Comparator.comparing(Person::getAge))
+                    .collect(Collectors.toList());
+
+    private static Supplier<List<Person>> persons =
+            () -> List.of(
+                    new Person("Antonio", 20, Gender.MALE),
+                    new Person("Alina Smith", 33, Gender.FEMALE),
+                    new Person("Helen White", 57, Gender.FEMALE),
+                    new Person("Alex Boz", 14, Gender.MALE),
+                    new Person("Jamie Goa", 99, Gender.MALE),
+                    new Person("Anna Cook", 7, Gender.FEMALE),
+                    new Person("Zelda Brown", 120, Gender.FEMALE)
+            );
 }
